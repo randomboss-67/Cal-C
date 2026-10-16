@@ -43,3 +43,5 @@ proguard/
 
 # Windows
 Thumbs.db
+
+.edge-profile-test/
