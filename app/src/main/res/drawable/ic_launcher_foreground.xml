@@ -1,0 +1,27 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Outer Rounded Calculator Frame -->
+    <path
+        android:fillColor="#22242B"
+        android:strokeColor="#333640"
+        android:strokeWidth="2"
+        android:pathData="M30,22h48a8,8 0 0,1 8,8v48a8,8 0 0,1 -8,8h-48a8,8 0 0,1 -8,-8v-48a8,8 0 0,1 8,-8z" />
+
+    <!-- Screen Area -->
+    <path
+        android:fillColor="#2A2D36"
+        android:pathData="M34,28h40a4,4 0 0,1 4,4v12a4,4 0 0,1 -4,4h-40a4,4 0 0,1 -4,-4v-12a4,4 0 0,1 4,-4z" />
+
+    <!-- Circular Keypad Buttons -->
+    <path
+        android:fillColor="#424652"
+        android:pathData="M40,54a5,5 0 1,0 0.1,0z M54,54a5,5 0 1,0 0.1,0z M68,54a5,5 0 1,0 0.1,0z M40,68a5,5 0 1,0 0.1,0z M54,68a5,5 0 1,0 0.1,0z" />
+
+    <!-- OnePlus Red Equals Button -->
+    <path
+        android:fillColor="#EB0028"
+        android:pathData="M68,68a6,6 0 1,0 0.1,0z" />
+</vector>

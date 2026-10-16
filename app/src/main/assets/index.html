@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#EB0028">
+  <meta name="description" content="Cal-C — Mobile-First Material 3 Expressive Calculator with Squircle Spring Physics and OnePlus Easter Egg.">
+  <title>Cal-C</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="icons/icon-512.svg">
+  <link rel="apple-touch-icon" href="icons/icon-512.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Offline Status Toast -->
+  <div class="offline-pill" id="offlinePill" role="status" aria-live="polite">
+    <span class="offline-dot"></span>
+    <span>100% Offline Ready</span>
+  </div>
+
+  <main class="app-container" role="application" aria-label="Cal-C Calculator">
+    <!-- Header Bar -->
+    <header class="calc-header">
+      <div class="brand-wrapper">
+        <h1 class="brand-logo">Cal-C</h1>
+        <span class="brand-dot" aria-hidden="true"></span>
+      </div>
+
+      <div class="header-actions">
+        <!-- Sound Toggle -->
+        <button class="header-icon-btn" id="btnToggleSound" title="Toggle Sound" aria-label="Toggle Sound Effects">
+          <svg id="iconSoundOn" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+          </svg>
+          <svg id="iconSoundOff" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="display: none;">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
+          </svg>
+        </button>
+
+        <!-- Theme Toggle -->
+        <button class="header-icon-btn" id="btnToggleTheme" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+          <svg id="iconThemeDark" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+          <svg id="iconThemeLight" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="display: none;">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+        </button>
+
+        <!-- History Drawer Button -->
+        <button class="header-icon-btn" id="btnOpenHistory" title="Calculation History" aria-label="Open History">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Display Card: Standard Math & OnePlus Easter Egg -->
+    <section class="display-card" id="displayCard" aria-live="polite">
+      <!-- Normal Calculator Display -->
+      <div class="display-normal" id="displayNormal">
+        <div class="expression-row">
+          <div class="expression-text" id="expressionDisplay" aria-label="Current expression"></div>
+          <button class="btn-inline-backspace" id="btnInlineBackspace" title="Backspace" aria-label="Backspace">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
+              <line x1="18" y1="9" x2="12" y2="15"></line>
+              <line x1="12" y1="9" x2="18" y2="15"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="result-row">
+          <div class="result-text" id="resultDisplay" aria-label="Calculated Result">0</div>
+        </div>
+
+        <div class="live-preview" id="livePreview" aria-label="Live calculation preview"></div>
+      </div>
+
+      <!-- ONEPLUS EASTER EGG DISPLAY:
+           Strictly: Boxed "1+" Icon and "NEVER SETTLE" in white bold uppercase text.
+           No extra labels, subtitles, or duplicate top expression text. -->
+      <div class="display-easter-egg" id="displayEasterEgg" aria-label="OnePlus Easter Egg">
+        <div class="boxed-oneplus-icon" aria-hidden="true">
+          <span class="op-num-1">1</span>
+          <span class="op-plus-sign">+</span>
+        </div>
+        <div class="never-settle-text">NEVER SETTLE</div>
+      </div>
+    </section>
+
+    <!-- Secondary Scientific Function Toolbar Toggle -->
+    <div class="secondary-actions-bar">
+      <button class="strip-pill-btn" id="btnToggleExtended" aria-expanded="false" aria-controls="extendedRow">
+        <span id="extendedPillLabel">Scientific Functions ( ) % ± ▾</span>
+      </button>
+    </div>
+
+    <!-- Collapsible Secondary Circle Row -->
+    <div class="keypad-grid" id="extendedRow" style="display: none; margin-bottom: var(--btn-gap);">
+      <button class="calc-btn btn-fn" data-action="parenthesis-open" aria-label="Open parenthesis">(</button>
+      <button class="calc-btn btn-fn" data-action="parenthesis-close" aria-label="Close parenthesis">)</button>
+      <button class="calc-btn btn-fn" data-action="percent" aria-label="Percentage">%</button>
+      <button class="calc-btn btn-fn" data-action="negate" aria-label="Plus Minus">±</button>
+    </div>
+
+    <!-- Primary Keypad Grid -->
+    <!-- All buttons are pure circles (aspect-ratio: 1:1, border-radius: 50%)
+         morphing to squircles (border-radius: 26%) with spring animation.
+         Row 1 Top Row: AC, x², x³, ÷
+         Row 5 Bottom Row: 0, ., ⌫, = (Permanently OnePlus Red #EB0028 with white text) -->
+    <div class="keypad-grid" id="mainKeypad" role="grid" aria-label="Keypad">
+      <!-- TOP ROW: AC, x², x³, ÷ -->
+      <button class="calc-btn btn-fn btn-ac" id="btnAC" data-action="clear" aria-label="All Clear">AC</button>
+      <button class="calc-btn btn-fn" data-action="square" aria-label="Square">x<span class="sup-text">2</span></button>
+      <button class="calc-btn btn-fn" data-action="cube" aria-label="Cube">x<span class="sup-text">3</span></button>
+      <button class="calc-btn btn-op" data-action="operator" data-val="÷" aria-label="Divide">÷</button>
+
+      <!-- ROW 2: 7, 8, 9, × -->
+      <button class="calc-btn btn-num" data-action="digit" data-val="7" aria-label="7">7</button>
+      <button class="calc-btn btn-num" data-action="digit" data-val="8" aria-label="8">8</button>
+      <button class="calc-btn btn-num" data-action="digit" data-val="9" aria-label="9">9</button>
+      <button class="calc-btn btn-op" data-action="operator" data-val="×" aria-label="Multiply">×</button>
+
+      <!-- ROW 3: 4, 5, 6, - -->
+      <button class="calc-btn btn-num" data-action="digit" data-val="4" aria-label="4">4</button>
+      <button class="calc-btn btn-num" data-action="digit" data-val="5" aria-label="5">5</button>
+      <button class="calc-btn btn-num" data-action="digit" data-val="6" aria-label="6">6</button>
+      <button class="calc-btn btn-op" data-action="operator" data-val="-" aria-label="Subtract">−</button>
+
+      <!-- ROW 4: 1, 2, 3, + -->
+      <button class="calc-btn btn-num" data-action="digit" data-val="1" aria-label="1">1</button>
+      <button class="calc-btn btn-num" data-action="digit" data-val="2" aria-label="2">2</button>
+      <button class="calc-btn btn-num" data-action="digit" data-val="3" aria-label="3">3</button>
+      <button class="calc-btn btn-op" data-action="operator" data-val="+" aria-label="Add">+</button>
+
+      <!-- ROW 5: 0, ., ⌫, = (Equals permanently #EB0028 OnePlus Red) -->
+      <button class="calc-btn btn-num" data-action="digit" data-val="0" aria-label="0">0</button>
+      <button class="calc-btn btn-num" data-action="decimal" data-val="." aria-label="Decimal point">.</button>
+      <button class="calc-btn btn-fn" data-action="backspace" aria-label="Backspace">⌫</button>
+      <button class="calc-btn btn-equals" id="btnEquals" data-action="calculate" aria-label="Equals">=</button>
+    </div>
+
+    <!-- History Drawer Sheet -->
+    <div class="history-drawer" id="historyDrawer" aria-hidden="true">
+      <div class="history-sheet">
+        <div class="history-header">
+          <span class="history-title">Calculation History</span>
+          <div class="history-actions">
+            <button class="btn-history-clear" id="btnClearHistory">Clear</button>
+            <button class="btn-history-close" id="btnCloseHistory">Done</button>
+          </div>
+        </div>
+        <div class="history-list" id="historyList">
+          <div class="history-empty">No calculations yet</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Offline Service Worker Registration & App Engine -->
+  <script src="app.js"></script>
+</body>
+</html>

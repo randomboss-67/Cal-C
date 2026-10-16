@@ -1,0 +1,18 @@
+{
+  "name": "Cal-C",
+  "short_name": "Cal-C",
+  "description": "Mobile-first Material 3 Expressive Calculator with squircle spring motion and OnePlus Easter egg.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#121316",
+  "theme_color": "#EB0028",
+  "icons": [
+    {
+      "src": "./icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

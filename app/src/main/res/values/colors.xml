@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- OnePlus Red Brand Token -->
+    <color name="oneplus_red">#EB0028</color>
+    <color name="oneplus_red_dark">#BA0020</color>
+
+    <!-- Material 3 Surface Colors -->
+    <color name="surface_light">#FFFFFF</color>
+    <color name="surface_dark">#18191E</color>
+    <color name="background_light">#ECEFF3</color>
+    <color name="background_dark">#0F1013</color>
+</resources>
