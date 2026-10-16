@@ -1,178 +1,472 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#EB0028">
-  <meta name="description" content="Cal-C — Mobile-First Material 3 Expressive Calculator with Squircle Spring Physics and OnePlus Easter Egg.">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Cal-C</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="icons/icon-512.svg">
-  <link rel="apple-touch-icon" href="icons/icon-512.svg">
-  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #141218;
+      --display-bg: #1D1B20;
+      --num-bg: #2B2930;
+      --num-text: #E6E0E9;
+      --op-bg: #4A4458;
+      --op-text: #E8DEF8;
+      --fn-bg: #633B48;
+      --fn-text: #FFD8E4;
+      --oneplus-red: #EB0028;
+      --text-secondary: #938F99;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--num-text);
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      height: 100dvh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .calculator-shell {
+      width: 100%;
+      max-width: 430px;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 14px;
+      gap: 14px;
+    }
+
+    /* Display Card (Material 3 Expressive) */
+    .display-card {
+      flex: 1;
+      min-height: 180px;
+      background-color: var(--display-bg);
+      border-radius: 36px;
+      padding: 22px 26px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      transition: background-color 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                  transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .display-card.easter-egg-active {
+      background-color: var(--oneplus-red);
+    }
+
+    /* App Header Logo */
+    .header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .app-logo {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: -0.6px;
+      color: #D0BCFF;
+      background: rgba(208, 188, 255, 0.12);
+      padding: 6px 16px;
+      border-radius: 999px;
+      transition: opacity 0.25s ease;
+    }
+
+    .display-card.easter-egg-active .app-logo {
+      color: #FFFFFF;
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    /* Standard Calculator Readout */
+    .readout-container {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: flex-end;
+      gap: 6px;
+      margin-top: auto;
+    }
+
+    .expression-line {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      min-height: 30px;
+      word-break: break-all;
+      text-align: right;
+    }
+
+    .result-line {
+      font-size: clamp(40px, 11vw, 60px);
+      font-weight: 900;
+      letter-spacing: -1.5px;
+      line-height: 1.05;
+      color: var(--num-text);
+      word-break: break-all;
+      text-align: right;
+    }
+
+    /* Clean Easter Egg View (Only 1+ Box & NEVER SETTLE) */
+    .easter-egg-view {
+      display: none;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: flex-end;
+      gap: 14px;
+      margin-top: auto;
+      animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .display-card.easter-egg-active .readout-container {
+      display: none;
+    }
+
+    .display-card.easter-egg-active .easter-egg-view {
+      display: flex;
+    }
+
+    .oneplus-box {
+      width: 44px;
+      height: 44px;
+      border: 3.5px solid #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 20px;
+      color: #FFFFFF;
+      position: relative;
+      letter-spacing: -1px;
+    }
+
+    .never-settle-title {
+      font-size: clamp(32px, 9vw, 44px);
+      font-weight: 900;
+      letter-spacing: 3px;
+      color: #FFFFFF;
+      text-transform: uppercase;
+      line-height: 1;
+      text-align: right;
+    }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: translateY(12px) scale(0.95); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Keypad Grid (4x5 Pure Circles) */
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      padding: 4px 2px 6px;
+    }
+
+    .calc-btn {
+      aspect-ratio: 1 / 1;
+      width: 100%;
+      border: none;
+      outline: none;
+      /* Default shape: Pure Circle */
+      border-radius: 50%;
+      font-family: inherit;
+      font-size: clamp(22px, 6vw, 28px);
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      /* Bouncy M3 Expressive morph transition */
+      transition:
+        border-radius 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+        transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+        filter 0.15s ease;
+    }
+
+    /* Morph from Circle to Squircle when clicked/pressed */
+    .calc-btn:active,
+    .calc-btn.squircle-active {
+      border-radius: 26%;
+      transform: scale(0.92);
+      filter: brightness(1.14);
+    }
+
+    .btn-num {
+      background-color: var(--num-bg);
+      color: var(--num-text);
+    }
+
+    .btn-op {
+      background-color: var(--op-bg);
+      color: var(--op-text);
+    }
+
+    .btn-fn {
+      background-color: var(--fn-bg);
+      color: var(--fn-text);
+      font-size: clamp(19px, 5vw, 23px);
+    }
+
+    /* Always Red = Button */
+    .btn-eq {
+      background-color: var(--oneplus-red);
+      color: #FFFFFF;
+      font-size: clamp(26px, 7vw, 32px);
+      box-shadow: 0 6px 20px rgba(235, 0, 40, 0.35);
+    }
+
+    sup {
+      font-size: 0.6em;
+      margin-left: 1px;
+    }
+  </style>
 </head>
 <body>
-  <!-- Offline Status Toast -->
-  <div class="offline-pill" id="offlinePill" role="status" aria-live="polite">
-    <span class="offline-dot"></span>
-    <span>100% Offline Ready</span>
+
+  <div class="calculator-shell">
+    <!-- Top Display Card -->
+    <div class="display-card" id="display-card">
+      <div class="header-bar">
+        <div class="app-logo">Cal-C</div>
+      </div>
+
+      <!-- Normal Calculator Output -->
+      <div class="readout-container">
+        <div class="expression-line" id="expression"></div>
+        <div class="result-line" id="result">0</div>
+      </div>
+
+      <!-- OnePlus "1+ =" Easter Egg Output (Strictly Clean) -->
+      <div class="easter-egg-view">
+        <div class="oneplus-box">1+</div>
+        <div class="never-settle-title">NEVER SETTLE</div>
+      </div>
+    </div>
+
+    <!-- 4x5 Circular Keypad (Morphs to Squircle on Tap) -->
+    <div class="keypad">
+      <!-- Row 1: AC, Square, Cube, Divide -->
+      <button class="calc-btn btn-fn" data-key="AC" onclick="pressButton(this, 'AC')">AC</button>
+      <button class="calc-btn btn-fn" data-key="SQ" onclick="pressButton(this, 'SQ')">x<sup>2</sup></button>
+      <button class="calc-btn btn-fn" data-key="CB" onclick="pressButton(this, 'CB')">x<sup>3</sup></button>
+      <button class="calc-btn btn-op" data-key="÷" onclick="pressButton(this, '÷')">÷</button>
+
+      <!-- Row 2: 7, 8, 9, Multiply -->
+      <button class="calc-btn btn-num" data-key="7" onclick="pressButton(this, '7')">7</button>
+      <button class="calc-btn btn-num" data-key="8" onclick="pressButton(this, '8')">8</button>
+      <button class="calc-btn btn-num" data-key="9" onclick="pressButton(this, '9')">9</button>
+      <button class="calc-btn btn-op" data-key="×" onclick="pressButton(this, '×')">×</button>
+
+      <!-- Row 3: 4, 5, 6, Subtract -->
+      <button class="calc-btn btn-num" data-key="4" onclick="pressButton(this, '4')">4</button>
+      <button class="calc-btn btn-num" data-key="5" onclick="pressButton(this, '5')">5</button>
+      <button class="calc-btn btn-num" data-key="6" onclick="pressButton(this, '6')">6</button>
+      <button class="calc-btn btn-op" data-key="-" onclick="pressButton(this, '-')">−</button>
+
+      <!-- Row 4: 1, 2, 3, Add -->
+      <button class="calc-btn btn-num" data-key="1" onclick="pressButton(this, '1')">1</button>
+      <button class="calc-btn btn-num" data-key="2" onclick="pressButton(this, '2')">2</button>
+      <button class="calc-btn btn-num" data-key="3" onclick="pressButton(this, '3')">3</button>
+      <button class="calc-btn btn-op" data-key="+" onclick="pressButton(this, '+')">+</button>
+
+      <!-- Row 5: 0, Decimal, Backspace, Red Equals -->
+      <button class="calc-btn btn-num" data-key="0" onclick="pressButton(this, '0')">0</button>
+      <button class="calc-btn btn-num" data-key="." onclick="pressButton(this, '.')">.</button>
+      <button class="calc-btn btn-fn" data-key="DEL" onclick="pressButton(this, 'DEL')">⌫</button>
+      <button class="calc-btn btn-eq" data-key="=" onclick="pressButton(this, '=')">=</button>
+    </div>
   </div>
 
-  <main class="app-container" role="application" aria-label="Cal-C Calculator">
-    <!-- Header Bar -->
-    <header class="calc-header">
-      <div class="brand-wrapper">
-        <h1 class="brand-logo">Cal-C</h1>
-        <span class="brand-dot" aria-hidden="true"></span>
-      </div>
+  <script>
+    let currentInput = "";
+    let easterEggTriggered = false;
 
-      <div class="header-actions">
-        <!-- Sound Toggle -->
-        <button class="header-icon-btn" id="btnToggleSound" title="Toggle Sound" aria-label="Toggle Sound Effects">
-          <svg id="iconSoundOn" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
-          </svg>
-          <svg id="iconSoundOff" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="display: none;">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-            <line x1="23" y1="9" x2="17" y2="15"></line>
-            <line x1="17" y1="9" x2="23" y2="15"></line>
-          </svg>
-        </button>
+    const displayCard = document.getElementById("display-card");
+    const exprEl = document.getElementById("expression");
+    const resultEl = document.getElementById("result");
 
-        <!-- Theme Toggle -->
-        <button class="header-icon-btn" id="btnToggleTheme" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
-          <svg id="iconThemeDark" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-          </svg>
-          <svg id="iconThemeLight" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="display: none;">
-            <circle cx="12" cy="12" r="5"></circle>
-            <line x1="12" y1="1" x2="12" y2="3"></line>
-            <line x1="12" y1="21" x2="12" y2="23"></line>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-            <line x1="1" y1="12" x2="3" y2="12"></line>
-            <line x1="21" y1="12" x2="23" y2="12"></line>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-          </svg>
-        </button>
+    function triggerHaptic(ms = 12) {
+      if (navigator.vibrate) navigator.vibrate(ms);
+    }
 
-        <!-- History Drawer Button -->
-        <button class="header-icon-btn" id="btnOpenHistory" title="Calculation History" aria-label="Open History">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 16 14"></polyline>
-          </svg>
-        </button>
-      </div>
-    </header>
+    function animateSquircle(btn) {
+      btn.classList.add("squircle-active");
+      setTimeout(() => btn.classList.remove("squircle-active"), 220);
+    }
 
-    <!-- Display Card: Standard Math & OnePlus Easter Egg -->
-    <section class="display-card" id="displayCard" aria-live="polite">
-      <!-- Normal Calculator Display -->
-      <div class="display-normal" id="displayNormal">
-        <div class="expression-row">
-          <div class="expression-text" id="expressionDisplay" aria-label="Current expression"></div>
-          <button class="btn-inline-backspace" id="btnInlineBackspace" title="Backspace" aria-label="Backspace">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
-              <line x1="18" y1="9" x2="12" y2="15"></line>
-              <line x1="12" y1="9" x2="18" y2="15"></line>
-            </svg>
-          </button>
-        </div>
+    function exitEasterEggIfActive() {
+      if (easterEggTriggered) {
+        easterEggTriggered = false;
+        displayCard.classList.remove("easter-egg-active");
+        currentInput = "";
+      }
+    }
 
-        <div class="result-row">
-          <div class="result-text" id="resultDisplay" aria-label="Calculated Result">0</div>
-        </div>
+    function pressButton(btn, key) {
+      triggerHaptic(key === "=" ? 22 : 10);
+      animateSquircle(btn);
 
-        <div class="live-preview" id="livePreview" aria-label="Live calculation preview"></div>
-      </div>
+      if (key === "AC") {
+        exitEasterEggIfActive();
+        currentInput = "";
+        updateScreen("", "0");
+        return;
+      }
 
-      <!-- ONEPLUS EASTER EGG DISPLAY:
-           Strictly: Boxed "1+" Icon and "NEVER SETTLE" in white bold uppercase text.
-           No extra labels, subtitles, or duplicate top expression text. -->
-      <div class="display-easter-egg" id="displayEasterEgg" aria-label="OnePlus Easter Egg">
-        <div class="boxed-oneplus-icon" aria-hidden="true">
-          <span class="op-num-1">1</span>
-          <span class="op-plus-sign">+</span>
-        </div>
-        <div class="never-settle-text">NEVER SETTLE</div>
-      </div>
-    </section>
+      if (key === "DEL") {
+        exitEasterEggIfActive();
+        currentInput = currentInput.slice(0, -1);
+        updateScreen(currentInput, currentInput || "0");
+        return;
+      }
 
-    <!-- Secondary Scientific Function Toolbar Toggle -->
-    <div class="secondary-actions-bar">
-      <button class="strip-pill-btn" id="btnToggleExtended" aria-expanded="false" aria-controls="extendedRow">
-        <span id="extendedPillLabel">Scientific Functions ( ) % ± ▾</span>
-      </button>
-    </div>
+      // Square (x²) or Cube (x³) of current value
+      if (key === "SQ" || key === "CB") {
+        exitEasterEggIfActive();
+        const baseValue = evaluateExpression(currentInput || resultEl.innerText);
+        if (baseValue === null || isNaN(baseValue)) return;
 
-    <!-- Collapsible Secondary Circle Row -->
-    <div class="keypad-grid" id="extendedRow" style="display: none; margin-bottom: var(--btn-gap);">
-      <button class="calc-btn btn-fn" data-action="parenthesis-open" aria-label="Open parenthesis">(</button>
-      <button class="calc-btn btn-fn" data-action="parenthesis-close" aria-label="Close parenthesis">)</button>
-      <button class="calc-btn btn-fn" data-action="percent" aria-label="Percentage">%</button>
-      <button class="calc-btn btn-fn" data-action="negate" aria-label="Plus Minus">±</button>
-    </div>
+        const power = key === "SQ" ? 2 : 3;
+        const symbol = key === "SQ" ? "²" : "³";
+        const computed = Math.pow(baseValue, power);
+        const formatted = formatResult(computed);
 
-    <!-- Primary Keypad Grid -->
-    <!-- All buttons are pure circles (aspect-ratio: 1:1, border-radius: 50%)
-         morphing to squircles (border-radius: 26%) with spring animation.
-         Row 1 Top Row: AC, x², x³, ÷
-         Row 5 Bottom Row: 0, ., ⌫, = (Permanently OnePlus Red #EB0028 with white text) -->
-    <div class="keypad-grid" id="mainKeypad" role="grid" aria-label="Keypad">
-      <!-- TOP ROW: AC, x², x³, ÷ -->
-      <button class="calc-btn btn-fn btn-ac" id="btnAC" data-action="clear" aria-label="All Clear">AC</button>
-      <button class="calc-btn btn-fn" data-action="square" aria-label="Square">x<span class="sup-text">2</span></button>
-      <button class="calc-btn btn-fn" data-action="cube" aria-label="Cube">x<span class="sup-text">3</span></button>
-      <button class="calc-btn btn-op" data-action="operator" data-val="÷" aria-label="Divide">÷</button>
+        updateScreen(`${formatResult(baseValue)}${symbol}`, formatted);
+        currentInput = String(computed);
+        return;
+      }
 
-      <!-- ROW 2: 7, 8, 9, × -->
-      <button class="calc-btn btn-num" data-action="digit" data-val="7" aria-label="7">7</button>
-      <button class="calc-btn btn-num" data-action="digit" data-val="8" aria-label="8">8</button>
-      <button class="calc-btn btn-num" data-action="digit" data-val="9" aria-label="9">9</button>
-      <button class="calc-btn btn-op" data-action="operator" data-val="×" aria-label="Multiply">×</button>
+      if (key === "=") {
+        // Exact "1+" Easter Egg Check
+        if (currentInput.replace(/\s+/g, "") === "1+") {
+          easterEggTriggered = true;
+          displayCard.classList.add("easter-egg-active");
+          triggerHaptic([20, 40, 35]);
+          return;
+        }
 
-      <!-- ROW 3: 4, 5, 6, - -->
-      <button class="calc-btn btn-num" data-action="digit" data-val="4" aria-label="4">4</button>
-      <button class="calc-btn btn-num" data-action="digit" data-val="5" aria-label="5">5</button>
-      <button class="calc-btn btn-num" data-action="digit" data-val="6" aria-label="6">6</button>
-      <button class="calc-btn btn-op" data-action="operator" data-val="-" aria-label="Subtract">−</button>
+        if (!currentInput) return;
+        const evaluated = evaluateExpression(currentInput);
+        if (evaluated === null) {
+          updateScreen(currentInput, "Error");
+          currentInput = "";
+        } else {
+          const formatted = formatResult(evaluated);
+          updateScreen(currentInput, formatted);
+          currentInput = String(evaluated);
+        }
+        return;
+      }
 
-      <!-- ROW 4: 1, 2, 3, + -->
-      <button class="calc-btn btn-num" data-action="digit" data-val="1" aria-label="1">1</button>
-      <button class="calc-btn btn-num" data-action="digit" data-val="2" aria-label="2">2</button>
-      <button class="calc-btn btn-num" data-action="digit" data-val="3" aria-label="3">3</button>
-      <button class="calc-btn btn-op" data-action="operator" data-val="+" aria-label="Add">+</button>
+      // Any number or operator key after Easter Egg resets to normal mode
+      exitEasterEggIfActive();
 
-      <!-- ROW 5: 0, ., ⌫, = (Equals permanently #EB0028 OnePlus Red) -->
-      <button class="calc-btn btn-num" data-action="digit" data-val="0" aria-label="0">0</button>
-      <button class="calc-btn btn-num" data-action="decimal" data-val="." aria-label="Decimal point">.</button>
-      <button class="calc-btn btn-fn" data-action="backspace" aria-label="Backspace">⌫</button>
-      <button class="calc-btn btn-equals" id="btnEquals" data-action="calculate" aria-label="Equals">=</button>
-    </div>
+      const operators = ["+", "-", "×", "÷"];
+      const lastChar = currentInput.slice(-1);
 
-    <!-- History Drawer Sheet -->
-    <div class="history-drawer" id="historyDrawer" aria-hidden="true">
-      <div class="history-sheet">
-        <div class="history-header">
-          <span class="history-title">Calculation History</span>
-          <div class="history-actions">
-            <button class="btn-history-clear" id="btnClearHistory">Clear</button>
-            <button class="btn-history-close" id="btnCloseHistory">Done</button>
-          </div>
-        </div>
-        <div class="history-list" id="historyList">
-          <div class="history-empty">No calculations yet</div>
-        </div>
-      </div>
-    </div>
-  </main>
+      if (operators.includes(key)) {
+        if (!currentInput && key !== "-") return;
+        if (operators.includes(lastChar)) {
+          currentInput = currentInput.slice(0, -1) + key;
+        } else {
+          currentInput += key;
+        }
+      } else if (key === ".") {
+        const parts = currentInput.split(/[+\-×÷]/);
+        const currentNumber = parts[parts.length - 1];
+        if (!currentNumber.includes(".")) {
+          currentInput += currentNumber === "" ? "0." : ".";
+        }
+      } else {
+        currentInput += key;
+      }
 
-  <!-- Offline Service Worker Registration & App Engine -->
-  <script src="app.js"></script>
+      // Live calculation preview when expression has a trailing number
+      const liveVal = evaluateExpression(currentInput);
+      const hasOperator = /[+\-×÷]/.test(currentInput.slice(1));
+      if (hasOperator && liveVal !== null && !operators.includes(currentInput.slice(-1))) {
+        updateScreen(currentInput, formatResult(liveVal));
+      } else {
+        updateScreen("", currentInput || "0");
+      }
+    }
+
+    function evaluateExpression(expr) {
+      if (!expr) return 0;
+      const sanitized = expr
+        .replace(/,/g, "")
+        .replace(/×/g, "*")
+        .replace(/÷/g, "/")
+        .replace(/[+\-*/.]$/, "");
+
+      if (!sanitized) return 0;
+      try {
+        const val = Function(`"use strict"; return (${sanitized})`)();
+        if (!isFinite(val) || isNaN(val)) return null;
+        return val;
+      } catch {
+        return null;
+      }
+    }
+
+    function formatResult(num) {
+      const rounded = Number(Math.round(num + "e10") + "e-10");
+      if (Math.abs(rounded) >= 1e12 || (Math.abs(rounded) > 0 && Math.abs(rounded) < 1e-7)) {
+        return rounded.toExponential(4);
+      }
+      return rounded.toLocaleString("en-IN", { maximumFractionDigits: 8 });
+    }
+
+    function updateScreen(exprText, mainText) {
+      exprEl.innerText = exprText;
+      resultEl.innerText = mainText;
+    }
+
+    // Keyboard support
+    window.addEventListener("keydown", (e) => {
+      const key = e.key;
+      let targetKey = null;
+      if (key >= "0" && key <= "9") targetKey = key;
+      else if (key === ".") targetKey = ".";
+      else if (key === "+") targetKey = "+";
+      else if (key === "-") targetKey = "-";
+      else if (key === "*") targetKey = "×";
+      else if (key === "/") targetKey = "÷";
+      else if (key === "Enter" || key === "=") { e.preventDefault(); targetKey = "="; }
+      else if (key === "Backspace") targetKey = "DEL";
+      else if (key === "Escape" || key.toLowerCase() === "c") targetKey = "AC";
+      else if (key.toLowerCase() === "s") targetKey = "SQ";
+      else if (key === "^") targetKey = "CB";
+
+      if (targetKey) {
+        const btn = document.querySelector(`.calc-btn[data-key="${targetKey}"]`);
+        if (btn) pressButton(btn, targetKey);
+      }
+    });
+
+    // PWA Service Worker Registration
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>

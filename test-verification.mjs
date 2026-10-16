@@ -15,7 +15,6 @@ const MIME_TYPES = {
   '.svg': 'image/svg+xml'
 };
 
-// 1. Create static HTTP server
 const server = http.createServer((req, res) => {
   let reqPath = req.url.split('?')[0];
   if (reqPath === '/') reqPath = '/index.html';
@@ -48,18 +47,17 @@ server.listen(PORT, async () => {
 
 async function runBrowserTests() {
   console.log('Launching headless Edge from:', EDGE_PATH);
-  const debugPort = 9222;
+  const debugPort = 9224;
   const browserProc = spawn(EDGE_PATH, [
     `--remote-debugging-port=${debugPort}`,
     '--headless=new',
     '--disable-gpu',
     '--no-first-run',
     '--no-default-browser-check',
-    `--user-data-dir=${DIR}\\.edge-profile`,
+    `--user-data-dir=${DIR}\\.edge-profile-test`,
     `http://localhost:${PORT}/index.html`
   ]);
 
-  // Wait for remote debugging endpoint
   let wsUrl = null;
   for (let i = 0; i < 40; i++) {
     await new Promise((r) => setTimeout(r, 250));
@@ -71,16 +69,11 @@ async function runBrowserTests() {
         wsUrl = page.webSocketDebuggerUrl;
         break;
       }
-    } catch (e) {
-      // Retry
-    }
+    } catch (e) {}
   }
 
-  if (!wsUrl) {
-    throw new Error('Could not connect to Edge remote debugging endpoint');
-  }
+  if (!wsUrl) throw new Error('Could not connect to Edge remote debugging endpoint');
 
-  console.log('Connected to CDP at:', wsUrl);
   const ws = new WebSocket(wsUrl);
   await new Promise((resolve, reject) => {
     ws.onopen = resolve;
@@ -89,7 +82,6 @@ async function runBrowserTests() {
 
   let msgId = 1;
   const callbacks = new Map();
-
   ws.onmessage = (event) => {
     const msg = JSON.parse(event.data);
     if (msg.id && callbacks.has(msg.id)) {
@@ -109,13 +101,8 @@ async function runBrowserTests() {
     });
   }
 
-  // Enable Page & Runtime
   await sendCDP('Page.enable');
   await sendCDP('Runtime.enable');
-  await sendCDP('DOM.enable');
-  await sendCDP('CSS.enable');
-
-  // Set viewport to mobile standard 390x844
   await sendCDP('Emulation.setDeviceMetricsOverride', {
     width: 390,
     height: 844,
@@ -123,7 +110,7 @@ async function runBrowserTests() {
     mobile: true
   });
 
-  await new Promise((r) => setTimeout(r, 1000));
+  await new Promise((r) => setTimeout(r, 800));
 
   async function evaluate(expression) {
     const res = await sendCDP('Runtime.evaluate', {
@@ -139,13 +126,14 @@ async function runBrowserTests() {
     const buffer = Buffer.from(res.data, 'base64');
     const outPath = path.join(DIR, filename);
     fs.writeFileSync(outPath, buffer);
+    fs.writeFileSync(path.join(DIR, 'docs', 'screenshots', filename), buffer);
     console.log(`Saved screenshot: ${outPath}`);
     return outPath;
   }
 
   console.log('\n--- VERIFICATION 1: INITIAL BUTTON SHAPE (PURE CIRCLE) ---');
   const initialShape = await evaluate(`(() => {
-    const btn1 = document.querySelector('.calc-btn[data-val="1"]');
+    const btn1 = document.querySelector('.calc-btn[data-key="1"]');
     const cs = window.getComputedStyle(btn1);
     const rect = btn1.getBoundingClientRect();
     return {
@@ -157,28 +145,20 @@ async function runBrowserTests() {
   })()`);
   console.log('Button 1 Initial Metrics:', initialShape);
 
-  // Take screenshot of initial state
   await takeScreenshot('screenshot-1-initial.png');
 
   console.log('\n--- VERIFICATION 2: SQUIRCLE MORPH ON CLICK ---');
   const morphResult = await evaluate(`(async () => {
-    const btn1 = document.querySelector('.calc-btn[data-val="1"]');
-    btn1.classList.add('is-active');
-    await new Promise(r => setTimeout(r, 200));
+    const btn1 = document.querySelector('.calc-btn[data-key="1"]');
+    btn1.classList.add('squircle-active');
+    await new Promise(r => setTimeout(r, 60));
     const activeRadius = window.getComputedStyle(btn1).borderRadius;
     const isSquircle = activeRadius.includes('26%') || parseFloat(activeRadius) < 35;
-    btn1.classList.remove('is-active');
-    
-    btn1.classList.add('squircle-spring');
-    await new Promise(r => setTimeout(r, 100));
-    const springRadius = window.getComputedStyle(btn1).borderRadius;
-    const springClasses = btn1.className;
+    btn1.classList.remove('squircle-active');
     
     return {
       activeBorderRadius: activeRadius,
-      isSquircle: isSquircle,
-      springBorderRadius: springRadius,
-      springClassApplied: springClasses.includes('squircle-spring')
+      isSquircle: isSquircle
     };
   })()`);
   console.log('Button Morph Result:', morphResult);
@@ -187,64 +167,61 @@ async function runBrowserTests() {
 
   // Click '1'
   const after1 = await evaluate(`(() => {
-    const btn = document.querySelector('.calc-btn[data-val="1"]');
+    const btn = document.querySelector('.calc-btn[data-key="1"]');
     btn.click();
     return {
-      expression: document.getElementById('expressionDisplay').textContent,
-      result: document.getElementById('resultDisplay').textContent
+      expression: document.getElementById('expression').innerText,
+      result: document.getElementById('result').innerText
     };
   })()`);
   console.log("After clicking '1':", after1);
 
   // Click '+'
   const afterPlus = await evaluate(`(() => {
-    const btn = document.querySelector('.calc-btn[data-val="+"]');
+    const btn = document.querySelector('.calc-btn[data-key="+"]');
     btn.click();
     return {
-      expression: document.getElementById('expressionDisplay').textContent,
-      result: document.getElementById('resultDisplay').textContent
+      expression: document.getElementById('expression').innerText,
+      result: document.getElementById('result').innerText
     };
   })()`);
   console.log("After clicking '+':", afterPlus);
 
   // Click '='
   const afterEquals = await evaluate(`(async () => {
-    const btn = document.getElementById('btnEquals');
+    const btn = document.querySelector('.calc-btn[data-key="="]');
     btn.click();
     
-    // Wait for the spring transition to complete
     await new Promise(r => setTimeout(r, 500));
 
-    const card = document.getElementById('displayCard');
+    const card = document.getElementById('display-card');
     const cardCs = window.getComputedStyle(card);
-    const easterEggContainer = document.getElementById('displayEasterEgg');
-    const eeCs = window.getComputedStyle(easterEggContainer);
-    const normalDisplay = document.getElementById('displayNormal');
-    const normalCs = window.getComputedStyle(normalDisplay);
-    const textEl = easterEggContainer.querySelector('.never-settle-text');
-    const iconEl = easterEggContainer.querySelector('.boxed-oneplus-icon');
+    const easterEggView = card.querySelector('.easter-egg-view');
+    const eeCs = window.getComputedStyle(easterEggView);
+    const readout = card.querySelector('.readout-container');
+    const readoutCs = window.getComputedStyle(readout);
+    const boxEl = easterEggView.querySelector('.oneplus-box');
+    const titleEl = easterEggView.querySelector('.never-settle-title');
 
     return {
       isEasterEggActive: card.classList.contains('easter-egg-active'),
       cardBackgroundColor: cardCs.backgroundColor,
-      normalDisplayMode: normalCs.display,
+      readoutDisplayMode: readoutCs.display,
       easterEggDisplayMode: eeCs.display,
-      hasBoxedIcon: !!iconEl,
-      neverSettleText: textEl ? textEl.textContent.trim() : null,
-      neverSettleColor: textEl ? window.getComputedStyle(textEl).color : null,
-      neverSettleFontWeight: textEl ? window.getComputedStyle(textEl).fontWeight : null,
-      neverSettleTextTransform: textEl ? window.getComputedStyle(textEl).textTransform : null,
-      innerHtmlSnippet: easterEggContainer.innerHTML.replace(/\\s+/g, ' ').trim()
+      boxText: boxEl ? boxEl.innerText.trim() : null,
+      boxBorderRadius: boxEl ? window.getComputedStyle(boxEl).borderRadius : null,
+      titleText: titleEl ? titleEl.innerText.trim() : null,
+      titleColor: titleEl ? window.getComputedStyle(titleEl).color : null,
+      titleFontWeight: titleEl ? window.getComputedStyle(titleEl).fontWeight : null
     };
   })()`);
   console.log("After clicking '=':", afterEquals);
 
-  // Take screenshot of Easter Egg state
   await takeScreenshot('screenshot-2-easter-egg.png');
 
   console.log('\n--- VERIFICATION 4: EQUALS BUTTON PERMANENT ONEPLUS RED ---');
   const equalsBtnStyle = await evaluate(`(() => {
-    const btn = document.getElementById('btnEquals');
+    const btn = document.querySelector('.calc-btn[data-key="="]');
     const cs = window.getComputedStyle(btn);
     return {
       bgColor: cs.backgroundColor,
@@ -256,16 +233,15 @@ async function runBrowserTests() {
 
   console.log('\n--- VERIFICATION 5: TOP ROW SQUARE (x²) AND CUBE (x³) ---');
   const topRowButtons = await evaluate(`(() => {
-    const topRow = Array.from(document.querySelectorAll('#mainKeypad > button')).slice(0, 4);
+    const topRow = Array.from(document.querySelectorAll('.keypad > button')).slice(0, 4);
     return topRow.map(b => ({
-      text: b.textContent.trim(),
-      action: b.dataset.action,
+      text: b.innerText.trim(),
+      key: b.dataset.key,
       borderRadius: window.getComputedStyle(b).borderRadius
     }));
   })()`);
   console.log('Top Row Buttons:', topRowButtons);
 
-  // Close browser & server
   ws.close();
   browserProc.kill();
   server.close();
